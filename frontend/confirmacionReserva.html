@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprobante de Pago - Hotel Aerolito</title>
+    <style>
+        body { font-family: sans-serif; max-width: 700px; margin: 40px auto; color: #333; line-height: 1.6; }
+        h1, h2 { color: #6A1B1F; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+        th { background: #f9f9f9; }
+        button {
+            background-color: #6A1B1F;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        button:hover { background-color: #8B2E34; }
+        #estadoCarga { color: #666; }
+    </style>
+</head>
+<body>
+
+    <div id="estadoCarga">Cargando comprobante...</div>
+
+    <div id="contenido" style="display:none;">
+
+        <header>
+            <h1>CONFIRMACIÓN DE RESERVA</h1>
+            <p><strong>Estado:</strong> <span id="estadoPago"></span></p>
+            <p>Gracias por elegir Hotel Aerolito. Su reserva ha sido procesada correctamente.</p>
+        </header>
+
+        <hr>
+
+        <section>
+            <h2>Información del Comprobante</h2>
+            <ul>
+                <li><strong>Número de Transacción:</strong> <span id="codigoTransaccion"></span></li>
+                <li><strong>Fecha de Pago:</strong> <span id="fechaPago"></span></li>
+                <li><strong>Método de Pago:</strong> <span id="metodoPago"></span></li>
+                <li><strong>Código de Autorización:</strong> <span id="codigoAutorizacion"></span></li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Detalles de la Reserva</h2>
+            <table>
+                <thead>
+                    <tr><th>Concepto</th><th>Detalle</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Huésped Principal</strong></td><td id="nombreHuesped"></td></tr>
+                    <tr><td><strong>ID Reserva</strong></td><td id="idReserva"></td></tr>
+                    <tr><td><strong>Habitación</strong></td><td id="habitacionDetalle"></td></tr>
+                    <tr><td><strong>Check-in</strong></td><td id="checkin"></td></tr>
+                    <tr><td><strong>Check-out</strong></td><td id="checkout"></td></tr>
+                    <tr><td><strong>Huéspedes</strong></td><td id="numHuespedes"></td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Resumen de Costos</h2>
+            <p id="listaServicios"></p>
+            <h3>TOTAL PAGADO: $<span id="totalPagado"></span> COP</h3>
+        </section>
+
+        <hr>
+
+        <footer>
+            <p><strong>Nota:</strong> Se ha enviado una copia de este comprobante a su correo electrónico.</p>
+            <p>Para cambios o cancelaciones, por favor contacte a soporte@hotelaerolito.com</p>
+
+            <br>
+            <button type="button" onclick="window.print()">Imprimir Comprobante</button>
+            <br><br>
+            <a href="Index.html">Volver al Panel Principal</a>
+        </footer>
+
+    </div>
+
+    <!-- Ajusta la ruta si tu auth.js está en otro lugar -->
+    <script src="../static/auth.js"></script>
+    <script>
+        // API_BASE_URL ya viene declarada en auth.js
+
+        if (!haySesion()) {
+            window.location.href = 'login.html';
+        }
+
+        var datosPago = JSON.parse(sessionStorage.getItem('aerolito_pago') || 'null');
+
+        if (!datosPago || !datosPago.pago || !datosPago.reserva) {
+            document.getElementById('estadoCarga').textContent =
+                'No se encontró un comprobante de pago reciente.';
+        } else {
+            mostrarComprobante(datosPago);
+        }
+
+        function mostrarComprobante(datos) {
+            var pago    = datos.pago;
+            var reserva = datos.reserva;
+            var usuario = (typeof obtenerUsuario === 'function') ? obtenerUsuario() : null;
+
+            document.getElementById('estadoPago').textContent =
+                pago.estado === 'aprobado' ? 'PAGO EXITOSO ✅' : pago.estado.toUpperCase();
+            document.getElementById('codigoTransaccion').textContent = pago.codigo_transaccion || '—';
+            document.getElementById('fechaPago').textContent = new Date(pago.fecha).toLocaleString('es-CO');
+            document.getElementById('metodoPago').textContent = pago.metodo === 'tarjeta' ? 'Tarjeta' : 'PSE';
+            document.getElementById('codigoAutorizacion').textContent = pago.codigo_autorizacion || '—';
+
+            document.getElementById('nombreHuesped').textContent = usuario ? usuario.nombre : ('Usuario #' + reserva.usuario_id);
+            document.getElementById('idReserva').textContent = '#RES-' + reserva.id;
+            document.getElementById('checkin').textContent = reserva.fecha_checkin;
+            document.getElementById('checkout').textContent = reserva.fecha_checkout + ' (' + reserva.noches + ' noche(s))';
+            document.getElementById('numHuespedes').textContent = reserva.num_huespedes;
+
+            var servicios = reserva.servicios || [];
+            document.getElementById('listaServicios').textContent = servicios.length
+                ? 'Servicios adicionales: ' + servicios.map(function (s) { return s.nombre; }).join(', ')
+                : 'Sin servicios adicionales.';
+
+            document.getElementById('totalPagado').textContent =
+                Number(pago.monto_total).toLocaleString('es-CO');
+
+            document.getElementById('estadoCarga').style.display = 'none';
+            document.getElementById('contenido').style.display = 'block';
+
+            // Traer el detalle de la habitación (tipo, número, precio)
+            fetch(API_BASE_URL + '/habitaciones/' + reserva.habitacion_id, {
+                headers: cabecerasAuth()
+            })
+                .then(function (res) { return res.ok ? res.json() : null; })
+                .then(function (data) {
+                    var h = data && (data.habitacion || data);
+                    if (h && h.tipo) {
+                        document.getElementById('habitacionDetalle').textContent =
+                            h.tipo + ' (Hab. N.° ' + h.numero + ')';
+                    } else {
+                        document.getElementById('habitacionDetalle').textContent =
+                            'Habitación #' + reserva.habitacion_id;
+                    }
+                })
+                .catch(function () {
+                    document.getElementById('habitacionDetalle').textContent =
+                        'Habitación #' + reserva.habitacion_id;
+                });
+        }
+    </script>
+
+</body>
+</html>

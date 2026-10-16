@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Servicios — Hotel Aerolito</title>
+  <link rel="stylesheet" href="../static/styles.css">
+</head>
+<body>
+
+  <div class="layout-panel">
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">Hotel Aerolito</div>
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="gestionServicios.html" class="active">Servicios</a></li>
+      </ul>
+    </aside>
+
+    <!-- ===================== CONTENIDO ===================== -->
+    <main class="main-content">
+
+      <div class="header">
+        <h1>Gestión de Servicios</h1>
+        <div class="user-profile" id="nav-auth"></div>
+      </div>
+
+      <!-- Mensajes de éxito / error -->
+      <div id="mensaje" style="display:none;"></div>
+
+      <!-- ============ TABLA DE SERVICIOS ============ -->
+      <div class="table-container">
+        <h2>Servicios existentes</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Precio</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaServicios">
+            <!-- Filas generadas por gestionServicios.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ============ FORMULARIO CREAR / EDITAR (sección aparte) ============ -->
+      <div class="panel" style="margin-top: 30px;">
+        <h2 id="tituloFormulario">Crear nuevo servicio</h2>
+
+        <form id="formServicio">
+          <input type="hidden" id="servicioId" value="">
+
+          <label for="nombre">Nombre</label>
+          <input type="text" id="nombre" placeholder="Ej: Desayuno buffet" required>
+
+          <label for="descripcion">Descripción</label>
+          <input type="text" id="descripcion" placeholder="Ej: Incluye jugo, café y pastelería">
+
+          <label for="precio">Precio (COP)</label>
+          <input type="text" id="precio" placeholder="Ej: 25000" required>
+
+          <div style="display:flex; gap: 10px;">
+            <button type="submit" id="btnGuardar">Crear servicio</button>
+            <button type="button" id="btnCancelar" style="background-color:#999; display:none;">Cancelar edición</button>
+          </div>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="static/auth.js"></script>
+  <script src="static/gestionServicios.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Hotel Aerolito</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="../static/css/login.css">
+</head>
+
+<body class="pagina-login">
+
+    <div class="login-volver">
+        <a href="Index.html" class="btn-volver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Volver al inicio
+        </a>
+    </div>
+
+    <div class="login-envoltorio">
+        <div>
+            <div class="login-marca">
+                <span class="marca">
+                    <span class="marca-icono">HA</span>
+                    Hotel Aerolito
+                </span>
+            </div>
+
+            <div class="tarjeta-centrada">
+                <h2>Iniciar sesión</h2>
+
+                <div id="mensaje" class="alerta" style="display:none;" role="alert" aria-live="polite"></div>
+
+                <form id="formLogin" novalidate>
+                    <label for="correo">Correo electrónico:</label>
+                    <input type="email" id="correo" name="correo" autocomplete="email" required>
+
+                    <label for="contrasena">Contraseña:</label>
+                    <input type="password" id="contrasena" name="contrasena" autocomplete="current-password" required>
+
+                    <button type="submit" id="btnIngresar">Ingresar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/auth.js"></script>
+    <script>
+        /* ✅ Endpoint y campos confirmados contra auth.py real:
+           POST /api/auth/login  con body { email, "contraseña" }
+           Respuesta: { mensaje, token, usuario: {...} } */
+
+        function mostrarMensaje(texto, tipo) {
+            var el = document.getElementById('mensaje');
+            el.textContent = texto;
+            el.className = 'alerta alerta-' + tipo;
+            el.style.display = 'block';
+        }
+
+        function ocultarMensaje() {
+            var el = document.getElementById('mensaje');
+            el.style.display = 'none';
+        }
+
+        document.getElementById('formLogin').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            var correo = document.getElementById('correo').value.trim();
+            var contrasena = document.getElementById('contrasena').value;
+
+            if (!correo || !contrasena) {
+                mostrarMensaje('⚠ Todos los campos son obligatorios.', 'error');
+                return;
+            }
+
+            var btn = document.getElementById('btnIngresar');
+            var textoOriginal = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Ingresando...';
+            ocultarMensaje();
+
+            fetch(API_BASE_URL + '/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: correo,
+                    "contraseña": contrasena
+                })
+            })
+                .then(function (res) {
+                    return res.json().then(function (data) {
+                        return { ok: res.ok, data: data };
+                    });
+                })
+                .then(function (resultado) {
+                    if (!resultado.ok) {
+                        var msg = resultado.data.mensaje || resultado.data.error || 'Credenciales incorrectas.';
+                        mostrarMensaje('⚠ ' + msg, 'error');
+                        return;
+                    }
+
+                    var data = resultado.data;
+                    var token = data.token;
+                    var usuario = data.usuario;
+                    var rol = usuario.rol;
+
+                    guardarSesion(token, usuario);
+                    mostrarMensaje('✔ Bienvenido, redirigiendo...', 'exito');
+
+                    setTimeout(function () {
+                        if (rol === 'admin' || rol === 'recepcionista') {
+                            window.location.href = 'dashboard.html';
+                        } else {
+                            window.location.href = 'Index.html';
+                        }
+                    }, 700);
+                })
+                .catch(function (err) {
+                    console.error('Error de login:', err);
+                    mostrarMensaje('⚠ No se pudo conectar con el servidor. Verifica que el backend esté corriendo.', 'error');
+                })
+                .finally(function () {
+                    btn.disabled = false;
+                    btn.textContent = textoOriginal;
+                });
+        });
+    </script>
+</body>
+</html>

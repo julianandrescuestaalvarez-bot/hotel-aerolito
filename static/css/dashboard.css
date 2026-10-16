@@ -1,0 +1,117 @@
+/* ============ DASHBOARD — ajustes específicos ============ */
+
+.header .btn-volver {
+  margin-bottom: 0;
+  margin-right: auto;
+}
+
+.header-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.header-textos span {
+  font-size: 13px;
+  color: var(--texto-suave);
+  font-weight: 500;
+}
+
+/* ============ TOOLBAR DE LA TABLA (filtro + refrescar) ============ */
+.tabla-toolbar h2 { margin: 0 0 14px 0; }
+
+.tabla-toolbar-acciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.tabla-toolbar-acciones select {
+  margin-bottom: 0;
+  width: auto;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.btn-refrescar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1.5px solid var(--vino);
+  color: var(--vino);
+  padding: 7px 14px;
+  font-size: 13px;
+  border-radius: 20px;
+}
+.btn-refrescar:hover { background: var(--vino); color: white; }
+.btn-refrescar svg { width: 13px; height: 13px; }
+
+/* ============ BOTONES DE ACCIÓN EN TABLA ============ */
+.btn-mini {
+  padding: 7px 16px;
+  font-size: 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.fila-acciones-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.btn-confirmar { background-color: var(--exito-texto); border-color: var(--exito-texto); }
+.btn-confirmar:hover:not(:disabled) { background-color: transparent; color: var(--exito-texto); }
+.btn-completar { background-color: var(--acento-oscuro); color: white; border-color: var(--acento-oscuro); }
+.btn-completar:hover:not(:disabled) { background-color: transparent; color: var(--acento-oscuro); }
+
+.btn-editar {
+  background-color: transparent;
+  border: 1.5px solid var(--vino);
+  color: var(--vino);
+}
+.btn-editar:hover:not(:disabled) { background-color: var(--vino); color: white; }
+
+/* Cancelar ya es outline por defecto: al pasar el mouse se rellena, efecto inverso intencional */
+.btn-cancelar {
+  background-color: transparent;
+  border: 1.5px solid var(--error);
+  color: var(--error);
+}
+.btn-cancelar:hover:not(:disabled) { background-color: var(--error); color: white; }
+
+/* ============ PANEL DEL GRÁFICO ============ */
+.panel-grafico {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 30px;
+}
+.panel-grafico h2 { margin-top: 0; font-size: 18px; }
+.panel-grafico .grafico-envoltorio { height: 220px; position: relative; }
+
+/* ============ PANEL DE EDICIÓN DE RESERVA ============ */
+.panel-editar {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-top: 3px solid var(--vino);
+  padding: 20px;
+  margin-top: 24px;
+}
+.panel-editar h2 { margin-top: 0; font-size: 17px; }
+.panel-editar #editandoId { color: var(--texto-suave); font-weight: 500; font-size: 14px; }
+.editar-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.editar-grid .campo { flex: 1; min-width: 150px; }
+.editar-grid label { margin-bottom: 6px; }
+.editar-grid input { margin-bottom: 0; }
+.editar-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.editar-acciones button { width: auto; }

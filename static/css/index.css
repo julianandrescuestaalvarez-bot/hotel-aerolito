@@ -1,0 +1,107 @@
+/* ============ INDEX — Página de inicio ============ */
+
+.nav-superior {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 22px 24px;
+}
+
+.nav-enlaces {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.nav-enlaces a { color: var(--texto); }
+.nav-enlaces a:hover { color: var(--vino); text-decoration: none; }
+
+/* ============ HERO ============ */
+.hero {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 24px 70px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  align-items: center;
+}
+@media (max-width: 800px) {
+  .hero { grid-template-columns: 1fr; padding-bottom: 40px; }
+}
+
+.hero-texto h2 {
+  font-size: 38px;
+  margin: 0 0 18px 0;
+}
+.hero-texto p {
+  font-size: 16px;
+  color: var(--texto-suave);
+  max-width: 46ch;
+  margin: 0 0 16px 0;
+}
+.hero-texto .cita {
+  font-family: var(--fuente-titulo);
+  font-style: italic;
+  color: var(--vino);
+  font-size: 17px;
+  border-left: 3px solid var(--acento);
+  padding-left: 14px;
+  margin: 22px 0;
+}
+
+/* Reemplaza el fondo por una foto real de Santa Rosa / el hotel:
+   background-image: url('../static/img/hero-santa-rosa.jpg'); */
+.hero-imagen {
+  height: 380px;
+  border-radius: 10px;
+  background-color: #e8e2da;
+  background-image: linear-gradient(135deg, #d8c8b0 0%, #c9b48a 100%);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 12px 30px rgba(106, 27, 31, 0.15);
+}
+@media (max-width: 800px) {
+  .hero-imagen { height: 220px; order: -1; }
+}
+
+/* ============ SECCIÓN "¿QUÉ PUEDES HACER HOY?" ============ */
+.acciones {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px 70px;
+}
+.acciones h3 { font-size: 22px; margin-bottom: 24px; }
+
+.acciones-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media (max-width: 700px) {
+  .acciones-grid { grid-template-columns: 1fr; }
+}
+
+.accion-card {
+  background: white;
+  border-radius: 8px;
+  padding: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.accion-card svg { width: 24px; height: 24px; color: var(--acento-oscuro); margin-bottom: 12px; }
+.accion-card h4 { margin: 0 0 8px 0; font-size: 16px; color: var(--vino); }
+.accion-card p { margin: 0; font-size: 14px; color: var(--texto-suave); }
+
+.cta-principal { margin-top: 6px; display: inline-block; }
+
+/* ============ FOOTER ============ */
+.footer-inicio {
+  text-align: center;
+  padding: 24px;
+  color: var(--texto-suave);
+  font-size: 13px;
+  border-top: 1px solid #eee;
+}

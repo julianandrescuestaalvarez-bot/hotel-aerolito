@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen de Reserva - Hotel Aerolito</title>
+    <link rel="stylesheet" href="../static/styles.css">
+</head>
+<body>
+
+    <div class="contenedor-pagina">
+
+        <div class="barra-superior">
+            <h1>Resumen de tu Reserva</h1>
+            <div class="user-profile" id="nav-auth"></div>
+        </div>
+
+        <div id="mensaje" class="alerta" style="display:none;" role="alert" aria-live="polite"></div>
+
+        <div id="contenido" class="resumen-grid" style="display:none;">
+
+            <!-- Columna izquierda: habitación + servicios -->
+            <div>
+                <div class="panel">
+                    <h2>Habitación seleccionada</h2>
+                    <p id="infoHabitacion"></p>
+                    <p id="infoFechas" style="color:#666; font-size:14px;"></p>
+                </div>
+
+                <div class="panel">
+                    <h2>Servicios adicionales (opcional)</h2>
+                    <div id="listaServicios">
+                        <p style="color:#666;">Cargando servicios...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna derecha: total y confirmación -->
+            <div>
+                <div class="panel">
+                    <h2>Total</h2>
+                    <div class="linea-total">
+                        <span id="labelNoches">Habitación (0 noches)</span>
+                        <span id="totalHabitacion">$0</span>
+                    </div>
+                    <div class="linea-total">
+                        <span>Servicios adicionales</span>
+                        <span id="totalServicios">$0</span>
+                    </div>
+                    <div class="linea-total">
+                        <span>Subtotal</span>
+                        <span id="totalSubtotal">$0</span>
+                    </div>
+                    <div class="linea-total">
+                        <span>IVA (19%)</span>
+                        <span id="totalIva">$0</span>
+                    </div>
+                    <div class="linea-total grande">
+                        <span>Total estimado</span>
+                        <span id="totalFinal">$0</span>
+                    </div>
+
+                    <div class="d-grid" style="margin-top:16px;">
+                        <button type="button" id="btnConfirmar" style="width:100%;">Confirmar Reserva</button>
+                    </div>
+                    <p style="font-size:12px; color:#999; margin-top:10px;">
+                        El total exacto se confirma al crear la reserva. El pago se realiza en el siguiente paso.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="../static/auth.js"></script>
+    <script>
+        /* ✅ Endpoints y campos confirmados contra reservas.py / servicios.py:
+           GET  /api/servicios/                  → { total, servicios: [{ id, nombre, descripcion, precio }] }
+           POST /api/reservas/  (con auth)        → body { habitacion_id, fecha_checkin, fecha_checkout,
+                                                             num_huespedes, servicios_ids: [] }
+                                                     respuesta { mensaje, reserva, total_estimado }
+           IVA (19%) replicado en el cliente solo para mostrar un estimado antes de confirmar;
+           el total real y autoritativo es el que devuelve el backend al crear la reserva. */
+
+        // --- Requiere sesión iniciada ---
+        if (!haySesion()) {
+            window.location.href = 'login.html';
+        }
+
+        // --- Requiere una habitación seleccionada previamente ---
+        var seleccionRaw = sessionStorage.getItem('aerolito_seleccion');
+        if (!seleccionRaw) {
+            window.location.href = 'seleccionHabitacion.html';
+        }
+        var seleccion = JSON.parse(seleccionRaw);
+
+        function mostrarMensaje(texto, tipo) {
+            var el = document.getElementById('mensaje');
+            el.textContent = texto;
+            el.className = 'alerta alerta-' + tipo;
+            el.style.display = 'block';
+        }
+
+        function formatoMoneda(valor) {
+            return '$' + Number(valor).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+        }
+
+        // --- Pintar info de la habitación y fechas ---
+        var entrada = new Date(seleccion.fecha_checkin + 'T00:00:00');
+        var salida  = new Date(seleccion.fecha_checkout + 'T00:00:00');
+        var noches  = Math.round((salida - entrada) / (1000 * 60 * 60 * 24));
+        var precioNoche = Number(seleccion.precio_noche);
+
+        document.getElementById('infoHabitacion').textContent =
+            seleccion.tipo + ' — N.° ' + seleccion.numero + ' (' + formatoMoneda(precioNoche) + ' / noche)';
+        document.getElementById('infoFechas').textContent =
+            'Check-in: ' + seleccion.fecha_checkin + '   ·   Check-out: ' + seleccion.fecha_checkout +
+            '   ·   ' + noches + ' noche(s)   ·   ' + seleccion.num_huespedes + ' huésped(es)';
+        document.getElementById('labelNoches').textContent = 'Habitación (' + noches + ' noches)';
+
+        var serviciosDisponibles = [];
+
+        function recalcularTotal() {
+            var subtotalHabitacion = precioNoche * noches;
+
+            var seleccionados = Array.from(document.querySelectorAll('.chkServicio:checked'));
+            var subtotalServicios = seleccionados.reduce(function (acc, chk) {
+                return acc + Number(chk.dataset.precio);
+            }, 0);
+
+            var subtotal = subtotalHabitacion + subtotalServicios;
+            var iva = subtotal * 0.19;
+            var total = subtotal + iva;
+
+            document.getElementById('totalHabitacion').textContent = formatoMoneda(subtotalHabitacion);
+            document.getElementById('totalServicios').textContent = formatoMoneda(subtotalServicios);
+            document.getElementById('totalSubtotal').textContent = formatoMoneda(subtotal);
+            document.getElementById('totalIva').textContent = formatoMoneda(iva);
+            document.getElementById('totalFinal').textContent = formatoMoneda(total);
+        }
+
+        // --- Cargar servicios adicionales (ruta pública) ---
+        fetch(API_BASE_URL + '/servicios/')
+            .then(function (res) {
+                if (!res.ok) throw new Error('No se pudieron cargar los servicios.');
+                return res.json();
+            })
+            .then(function (data) {
+                serviciosDisponibles = data.servicios || [];
+                var $lista = document.getElementById('listaServicios');
+
+                if (serviciosDisponibles.length === 0) {
+                    $lista.innerHTML = '<p style="color:#666;">No hay servicios adicionales disponibles.</p>';
+                } else {
+                    $lista.innerHTML = serviciosDisponibles.map(function (s) {
+                        return '' +
+                            '<label class="fila-servicio">' +
+                                '<input type="checkbox" class="chkServicio" value="' + s.id + '" data-precio="' + s.precio + '">' +
+                                '<span>' +
+                                    '<div class="servicio-nombre">' + s.nombre + '</div>' +
+                                    '<div class="servicio-desc">' + (s.descripcion || '') + '</div>' +
+                                '</span>' +
+                                '<span class="servicio-precio">' + formatoMoneda(s.precio) + '</span>' +
+                            '</label>';
+                    }).join('');
+
+                    document.querySelectorAll('.chkServicio').forEach(function (chk) {
+                        chk.addEventListener('change', recalcularTotal);
+                    });
+                }
+
+                recalcularTotal();
+                document.getElementById('contenido').style.display = 'grid';
+            })
+            .catch(function (err) {
+                console.error(err);
+                mostrarMensaje('⚠ No se pudieron cargar los servicios adicionales.', 'error');
+                document.getElementById('contenido').style.display = 'grid';
+                recalcularTotal();
+            });
+
+        // --- Confirmar reserva ---
+        document.getElementById('btnConfirmar').addEventListener('click', function () {
+            var btn = this;
+            var textoOriginal = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Creando reserva...';
+
+            var serviciosIds = Array.from(document.querySelectorAll('.chkServicio:checked'))
+                .map(function (chk) { return Number(chk.value); });
+
+            fetch(API_BASE_URL + '/reservas/', {
+                method: 'POST',
+                headers: cabecerasAuth(),
+                body: JSON.stringify({
+                    habitacion_id: Number(seleccion.habitacion_id),
+                    fecha_checkin: seleccion.fecha_checkin,
+                    fecha_checkout: seleccion.fecha_checkout,
+                    num_huespedes: Number(seleccion.num_huespedes),
+                    servicios_ids: serviciosIds
+                })
+            })
+                .then(function (res) {
+                    return res.json().then(function (data) {
+                        return { ok: res.ok, data: data };
+                    });
+                })
+                .then(function (resultado) {
+                    if (!resultado.ok) {
+                        var msg = resultado.data.error || 'No se pudo crear la reserva.';
+                        mostrarMensaje('⚠ ' + msg, 'error');
+                        return;
+                    }
+
+                    var data = resultado.data;
+
+                    // Guardar la reserva creada para usarla en el pago
+                    sessionStorage.setItem('aerolito_reserva', JSON.stringify({
+                        reserva: data.reserva,
+                        total_estimado: data.total_estimado
+                    }));
+                    sessionStorage.removeItem('aerolito_seleccion');
+
+                    mostrarMensaje('✔ Reserva creada. Redirigiendo al pago...', 'exito');
+                    setTimeout(function () {
+                        window.location.href = 'pagoenLinea.html';
+                    }, 900);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    mostrarMensaje('⚠ No se pudo conectar con el servidor. Verifica que el backend esté corriendo.', 'error');
+                })
+                .finally(function () {
+                    btn.disabled = false;
+                    btn.textContent = textoOriginal;
+                });
+        });
+    </script>
+</body>
+</html>

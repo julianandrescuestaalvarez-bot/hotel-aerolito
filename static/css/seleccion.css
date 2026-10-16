@@ -1,0 +1,12 @@
+/* ============ SELECCIÓN DE HABITACIÓN — ajustes específicos ============ */
+
+.barra-superior .marca { font-size: 18px; }
+
+.estado-vacio {
+  background: white;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--texto-suave);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}

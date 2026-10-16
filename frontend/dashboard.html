@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Hotel Aerolito</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="../static/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <div class="layout-panel">
+
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span class="marca">
+                    <span class="marca-icono">HA</span>
+                    Hotel Aerolito
+                </span>
+            </div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+                        Panel principal
+                    </a>
+                </li>
+                <li>
+                    <a href="dashboard.html#seccionReservas">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                        Reservas
+                    </a>
+                </li>
+                <li>
+                    <a href="seleccionHabitacion.html">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6M3 18h18M3 18v2M21 18v2M5 10V7a2 2 0 012-2h3v5"/></svg>
+                        Habitaciones
+                    </a>
+                </li>
+                <li>
+                    <a href="seviciosAdicionales.html">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        Servicios adicionales
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+
+            <div class="header">
+                <a href="Index.html" class="btn-volver">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    Ver sitio
+                </a>
+                <div class="header-textos">
+                    <h1>Resumen de hoy</h1>
+                </div>
+                <div class="user-profile" id="perfilUsuario">
+                    👤 <span id="nombreUsuario">Cargando...</span>
+                    <a href="#" id="btnCerrarSesion">Cerrar sesión</a>
+                </div>
+            </div>
+
+            <div id="mensaje" class="alerta" style="display:none;" role="alert" aria-live="polite"></div>
+
+            <div class="cards" id="tarjetasResumen">
+                <div class="card">
+                    <div class="card-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+                    <h3>Check-ins hoy</h3><p id="statCheckins">—</p>
+                </div>
+                <div class="card">
+                    <div class="card-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6M3 18h18"/></svg></div>
+                    <h3>Habitaciones libres</h3><p id="statLibres">—</p>
+                </div>
+                <div class="card">
+                    <div class="card-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+                    <h3>Ocupación</h3><p id="statOcupacion">—</p>
+                </div>
+                <div class="card">
+                    <div class="card-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+                    <h3>Ingresos del día</h3><p id="statIngresos">—</p>
+                </div>
+            </div>
+
+            <div class="panel-grafico">
+                <h2>Reservas por estado (todas)</h2>
+                <div class="grafico-envoltorio">
+                    <canvas id="graficoReservas"></canvas>
+                </div>
+            </div>
+
+            <div class="table-container" id="seccionReservas">
+                <div class="tabla-toolbar">
+                    <h2>Reservas recientes</h2>
+                </div>
+                <div class="tabla-toolbar-acciones">
+                    <select id="filtroEstado">
+                        <option value="todas">Todas</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="confirmada">Confirmadas</option>
+                        <option value="completada">Completadas</option>
+                        <option value="cancelada">Canceladas</option>
+                    </select>
+                    <button type="button" class="btn-refrescar" id="btnRefrescar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                        Actualizar
+                    </button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Reserva</th>
+                            <th>Huésped</th>
+                            <th>Habitación</th>
+                            <th>Fechas</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaReservas">
+                        <tr><td colspan="6">Cargando reservas...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel-editar" id="panelEditar" style="display:none;">
+                <h2>Editar reserva <span id="editandoId"></span></h2>
+                <form id="formEditarReserva">
+                    <div class="editar-grid">
+                        <div class="campo">
+                            <label for="editCheckin">Check-in</label>
+                            <input type="date" id="editCheckin" required>
+                        </div>
+                        <div class="campo">
+                            <label for="editCheckout">Check-out</label>
+                            <input type="date" id="editCheckout" required>
+                        </div>
+                        <div class="campo">
+                            <label for="editHuespedes">Huéspedes</label>
+                            <input type="number" id="editHuespedes" min="1" max="10" required>
+                        </div>
+                    </div>
+                    <div class="editar-acciones">
+                        <button type="submit" id="btnGuardarEdicion">Guardar cambios</button>
+                        <button type="button" class="btn-secundario" id="btnCancelarEdicion">Cancelar edición</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="../static/auth.js"></script>
+    <script>
+        /* ✅ Conectado contra tu dashboard.py real:
+           GET /api/dashboard/resumen              → checkins_hoy, habitaciones_libres,
+                                                       total_habitaciones, ocupacion_pct, ingresos_hoy
+           GET /api/dashboard/reservas-recientes    → últimas 10, con huesped_nombre,
+                                                       habitacion_numero, habitacion_tipo
+           El gráfico usa GET /api/reservas/ completo para ver la distribución total. */
+
+        // --- Proteger la página: solo admin/recepcionista con sesión activa ---
+        var usuario = obtenerUsuario();
+        if (!haySesion() || !usuario || (usuario.rol !== 'admin' && usuario.rol !== 'recepcionista')) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('nombreUsuario').textContent = usuario ? (usuario.nombre || 'Usuario') : '';
+
+        document.getElementById('btnCerrarSesion').addEventListener('click', function (e) {
+            e.preventDefault();
+            cerrarSesion();
+        });
+
+        // --- Marcar automáticamente la sección activa del menú ---
+        (function marcarActivo() {
+            var actual = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.sidebar-menu a').forEach(function (a) {
+                var href = a.getAttribute('href').split('#')[0];
+                a.classList.toggle('active', href === actual);
+            });
+        })();
+
+        function mostrarError(texto) {
+            var el = document.getElementById('mensaje');
+            el.textContent = texto;
+            el.className = 'alerta alerta-error';
+            el.style.display = 'block';
+        }
+        function ocultarMensaje() {
+            document.getElementById('mensaje').style.display = 'none';
+        }
+
+        var reservasTablaGlobal = [];
+        var graficoReservas = null;
+
+        // --- Traer resumen + reservas recientes + reservas completas (para el gráfico) ---
+        function cargarTodo() {
+            ocultarMensaje();
+            document.getElementById('tablaReservas').innerHTML = '<tr><td colspan="6">Cargando reservas...</td></tr>';
+
+            Promise.all([
+                fetch(API_BASE_URL + '/dashboard/resumen', { headers: cabecerasAuth() }),
+                fetch(API_BASE_URL + '/dashboard/reservas-recientes', { headers: cabecerasAuth() }),
+                fetch(API_BASE_URL + '/reservas/', { headers: cabecerasAuth() })
+            ])
+                .then(function (responses) {
+                    if (responses.some(function (r) { return r.status === 401; })) {
+                        cerrarSesion();
+                        return null;
+                    }
+                    return Promise.all(responses.map(function (r) { return r.ok ? r.json() : null; }));
+                })
+                .then(function (resultados) {
+                    if (!resultados) return;
+
+                    var resumen = resultados[0];
+                    var recientes = resultados[1];
+                    var todas = resultados[2];
+
+                    if (resumen) renderStats(resumen);
+
+                    reservasTablaGlobal = (recientes && recientes.reservas) || [];
+                    var reservasTodas = (todas && todas.reservas) || [];
+
+                    renderGrafico(reservasTodas);
+                    renderTabla(document.getElementById('filtroEstado').value);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    mostrarError('⚠ No se pudieron cargar los datos del panel. Verifica que el backend esté corriendo.');
+                    document.getElementById('tablaReservas').innerHTML = '<tr><td colspan="6">⚠ Error al cargar reservas.</td></tr>';
+                });
+        }
+
+        // --- Tarjetas de KPI (directo del backend) ---
+        function renderStats(data) {
+            document.getElementById('statCheckins').textContent = data.checkins_hoy ?? '—';
+            document.getElementById('statLibres').textContent =
+                (data.habitaciones_libres ?? '—') + ' / ' + (data.total_habitaciones ?? '—');
+            document.getElementById('statOcupacion').textContent = (data.ocupacion_pct ?? '—') + '%';
+            document.getElementById('statIngresos').textContent =
+                '$' + Number(data.ingresos_hoy || 0).toLocaleString('es-CO');
+        }
+
+        // --- Gráfico de reservas por estado ---
+        function renderGrafico(reservas) {
+            var estadosOrden = ['pendiente', 'confirmada', 'completada', 'cancelada'];
+            var etiquetas = ['Pendientes', 'Confirmadas', 'Completadas', 'Canceladas'];
+            var conteo = { pendiente: 0, confirmada: 0, completada: 0, cancelada: 0 };
+
+            reservas.forEach(function (r) { if (conteo[r.estado] !== undefined) conteo[r.estado]++; });
+
+            var datos = estadosOrden.map(function (e) { return conteo[e]; });
+
+            if (graficoReservas) graficoReservas.destroy();
+
+            var ctx = document.getElementById('graficoReservas').getContext('2d');
+            graficoReservas = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: etiquetas,
+                    datasets: [{
+                        label: 'Reservas',
+                        data: datos,
+                        backgroundColor: ['#C5A059', '#1e8e3e', '#8B2E34', '#c62828']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        // --- Tabla de reservas recientes con filtro y acciones rápidas ---
+        function renderTabla(filtro) {
+            var $tbody = document.getElementById('tablaReservas');
+
+            var lista = (!filtro || filtro === 'todas')
+                ? reservasTablaGlobal
+                : reservasTablaGlobal.filter(function (r) { return r.estado === filtro; });
+
+            if (lista.length === 0) {
+                $tbody.innerHTML = '<tr><td colspan="6">No hay reservas recientes para este filtro.</td></tr>';
+                return;
+            }
+
+            $tbody.innerHTML = lista.map(function (r) {
+                var estadoClase = (r.estado === 'confirmada' || r.estado === 'completada') ? 'confirmado' : 'pendiente';
+
+                return '<tr>' +
+                    '<td>#RES-' + r.id + '</td>' +
+                    '<td>' + (r.huesped_nombre || '—') + '</td>' +
+                    '<td>' + (r.habitacion_tipo || '') + ' N.° ' + (r.habitacion_numero || '—') + '</td>' +
+                    '<td>' + r.fecha_checkin + ' → ' + r.fecha_checkout + '</td>' +
+                    '<td><span class="status ' + estadoClase + '">' + r.estado + '</span></td>' +
+                    '<td>' + filaAcciones(r) + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        function filaAcciones(r) {
+            if (r.estado === 'pendiente') {
+                return '<div class="fila-acciones-botones">' +
+                    '<button class="btn-mini btn-confirmar" onclick="cambiarEstado(' + r.id + ",'confirmada',this)\">Confirmar</button>" +
+                    '<button class="btn-mini btn-editar" onclick="abrirEdicion(' + r.id + ')">Editar</button>' +
+                    '<button class="btn-mini btn-cancelar" onclick="cambiarEstado(' + r.id + ",'cancelada',this)\">Cancelar</button>" +
+                    '</div>';
+            }
+            if (r.estado === 'confirmada') {
+                return '<div class="fila-acciones-botones">' +
+                    '<button class="btn-mini btn-completar" onclick="cambiarEstado(' + r.id + ",'completada',this)\">Completar</button>" +
+                    '<button class="btn-mini btn-cancelar" onclick="cambiarEstado(' + r.id + ",'cancelada',this)\">Cancelar</button>" +
+                    '</div>';
+            }
+            return '<span style="color:var(--texto-suave); font-size:12px;">—</span>';
+        }
+
+        // --- Cambiar estado de una reserva (usa PUT /api/reservas/<id>/estado) ---
+        function cambiarEstado(id, nuevoEstado, btn) {
+            if (nuevoEstado === 'cancelada' && !confirm('¿Seguro que quieres cancelar esta reserva?')) return;
+
+            var textoOriginal = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '...';
+
+            fetch(API_BASE_URL + '/reservas/' + id + '/estado', {
+                method: 'PUT',
+                headers: cabecerasAuth(),
+                body: JSON.stringify({ estado: nuevoEstado })
+            })
+                .then(function (res) {
+                    return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+                })
+                .then(function (resultado) {
+                    if (!resultado.ok) {
+                        mostrarError('⚠ ' + (resultado.data.error || 'No se pudo actualizar la reserva.'));
+                        btn.disabled = false;
+                        btn.textContent = textoOriginal;
+                        return;
+                    }
+                    cargarTodo();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    mostrarError('⚠ No se pudo conectar con el servidor.');
+                    btn.disabled = false;
+                    btn.textContent = textoOriginal;
+                });
+        }
+
+        document.getElementById('filtroEstado').addEventListener('change', function () {
+            renderTabla(this.value);
+        });
+        document.getElementById('btnRefrescar').addEventListener('click', cargarTodo);
+
+        // --- Editar reserva (RF5): abrir sección, precargar datos y guardar ---
+        var idEditando = null;
+
+        function abrirEdicion(id) {
+            var r = reservasTablaGlobal.find(function (x) { return x.id === id; });
+            if (!r) return;
+
+            idEditando = id;
+            document.getElementById('editandoId').textContent = '#RES-' + r.id + ' — ' + (r.huesped_nombre || '');
+            document.getElementById('editCheckin').value = r.fecha_checkin;
+            document.getElementById('editCheckout').value = r.fecha_checkout;
+            document.getElementById('editHuespedes').value = r.num_huespedes;
+
+            var hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('editCheckin').min = hoy;
+            document.getElementById('editCheckout').min = r.fecha_checkin;
+
+            var panel = document.getElementById('panelEditar');
+            panel.style.display = 'block';
+            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        document.getElementById('editCheckin').addEventListener('change', function () {
+            document.getElementById('editCheckout').min = this.value;
+        });
+
+        document.getElementById('btnCancelarEdicion').addEventListener('click', function () {
+            document.getElementById('panelEditar').style.display = 'none';
+            idEditando = null;
+        });
+
+        document.getElementById('formEditarReserva').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (!idEditando) return;
+
+            var checkin = document.getElementById('editCheckin').value;
+            var checkout = document.getElementById('editCheckout').value;
+            var huespedes = Number(document.getElementById('editHuespedes').value);
+
+            if (checkout <= checkin) {
+                mostrarError('⚠ El checkout debe ser posterior al checkin.');
+                return;
+            }
+
+            var btn = document.getElementById('btnGuardarEdicion');
+            var textoOriginal = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            fetch(API_BASE_URL + '/reservas/' + idEditando, {
+                method: 'PUT',
+                headers: cabecerasAuth(),
+                body: JSON.stringify({
+                    fecha_checkin: checkin,
+                    fecha_checkout: checkout,
+                    num_huespedes: huespedes
+                })
+            })
+                .then(function (res) {
+                    return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+                })
+                .then(function (resultado) {
+                    if (!resultado.ok) {
+                        mostrarError('⚠ ' + (resultado.data.error || 'No se pudo actualizar la reserva.'));
+                        return;
+                    }
+                    document.getElementById('panelEditar').style.display = 'none';
+                    idEditando = null;
+                    cargarTodo();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    mostrarError('⚠ No se pudo conectar con el servidor.');
+                })
+                .finally(function () {
+                    btn.disabled = false;
+                    btn.textContent = textoOriginal;
+                });
+        });
+
+        cargarTodo();
+    </script>
+</body>
+</html>

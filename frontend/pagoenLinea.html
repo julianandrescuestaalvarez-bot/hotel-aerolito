@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pago de Reserva - Hotel Aerolito</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; color: #333; line-height: 1.6; }
+
+        h1, h3 { color: #6A1B1F; border-bottom: 2px solid #8B2E34; padding-bottom: 10px; }
+
+        button {
+            background-color: #6A1B1F;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover { background-color: #8B2E34; }
+        button:disabled { background-color: #b08b8d; cursor: not-allowed; }
+
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #mensaje {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        #mensaje.error   { background: #fdecea; color: #8B2E34; border: 1px solid #8B2E34; display: block; }
+        #mensaje.exito   { background: #e6f4ea; color: #1e7e34; border: 1px solid #1e7e34; display: block; }
+    </style>
+</head>
+<body>
+
+    <h1>Finalizar Reserva</h1>
+
+    <div id="mensaje"></div>
+
+    <form id="formPago">
+
+        <h3>1. Información del Huésped</h3>
+        <label>Nombre Completo:</label>
+        <input type="text" name="nombre" required>
+        <label>Correo Electrónico:</label>
+        <input type="email" name="email" required>
+
+        <p style="text-align: right; font-size: 20px;">
+            <strong>Total: $<span id="totalPago">0</span></strong>
+        </p>
+
+        <button type="submit" id="btnPagar">Pagar con Wompi</button>
+    </form>
+
+    <!-- Librería del widget de Wompi -->
+    <script src="../static/auth.js"></script>
+<script>
+    if (!haySesion()) window.location.href = 'login.html';
+
+    var datosReserva = JSON.parse(sessionStorage.getItem('aerolito_reserva') || 'null');
+
+    function mostrarMensaje(texto, tipo) {
+        var div = document.getElementById('mensaje');
+        div.textContent = texto;
+        div.className = tipo;
+    }
+
+    if (!datosReserva || !datosReserva.reserva) {
+        mostrarMensaje('⚠ No se encontró una reserva pendiente de pago.', 'error');
+        document.getElementById('btnPagar').disabled = true;
+    } else {
+        document.getElementById('totalPago').textContent =
+            Number(datosReserva.total_estimado).toLocaleString('es-CO');
+    }
+
+    document.getElementById('formPago').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!datosReserva || !datosReserva.reserva) return;
+
+        var btn = document.getElementById('btnPagar');
+        btn.disabled = true;
+        btn.textContent = 'Redirigiendo a Wompi...';
+
+        fetch(API_BASE_URL + '/pagos/iniciar', {
+            method: 'POST',
+            headers: cabecerasAuth(),
+            body: JSON.stringify({ reserva_id: datosReserva.reserva.id })
+        })
+            .then(function (res) {
+                return res.json().then(function (data) {
+                    return { ok: res.ok, data: data };
+                });
+            })
+            .then(function (resultado) {
+                if (!resultado.ok) {
+                    mostrarMensaje('⚠ ' + (resultado.data.error || 'No se pudo iniciar el pago.'), 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Pagar con Wompi';
+                    return;
+                }
+
+                var d = resultado.data;
+                var redirectUrl = window.location.origin +
+                    window.location.pathname.replace('pagoenLinea.html', 'confirmacionReserva.html');
+
+                // OJO: no borramos 'aerolito_reserva' de sessionStorage todavía —
+                // lo necesitamos al volver de Wompi para saber a qué reserva confirmar el pago.
+
+                var form = document.createElement('form');
+                form.method = 'GET';
+                form.action = 'https://checkout.wompi.co/p/';
+
+                function campoOculto(nombre, valor) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = nombre;
+                    input.value = valor;
+                    form.appendChild(input);
+                }
+
+                campoOculto('public-key', d.llave_publica);
+                campoOculto('currency', d.moneda);
+                campoOculto('amount-in-cents', d.monto_en_centavos);
+                campoOculto('reference', d.referencia);
+                campoOculto('signature:integrity', d.firma_integridad);
+                campoOculto('redirect-url', redirectUrl);
+
+                document.body.appendChild(form);
+                form.submit();   // navega el navegador completo hacia Wompi
+            })
+            .catch(function (err) {
+                console.error(err);
+                mostrarMensaje('⚠ No se pudo conectar con el servidor.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Pagar con Wompi';
+            });
+    });
+</script>
+
+</body>
+</html>

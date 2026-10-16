@@ -1,0 +1,43 @@
+/* ============ LOGIN ============ */
+
+/* Reemplaza el gradiente por una foto real de una habitación:
+   background-image: linear-gradient(rgba(82,21,24,.75), rgba(82,21,24,.75)), url('../static/img/login-bg.jpg'); */
+body.pagina-login {
+  background-color: var(--vino-oscuro);
+  background-image:
+    linear-gradient(rgba(82, 21, 24, 0.82), rgba(82, 21, 24, 0.88)),
+    linear-gradient(135deg, #6a1b1f 0%, #3a0f12 100%);
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-volver {
+  padding: 24px;
+}
+.login-volver .btn-volver { color: #f1e1d9; }
+.login-volver .btn-volver:hover { color: var(--acento); }
+
+.login-envoltorio {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-marca {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+.login-marca .marca { color: white; font-size: 22px; }
+.login-marca .marca-icono { background: var(--acento); color: var(--vino-oscuro); }
+
+.tarjeta-centrada p.login-nota {
+  font-size: 13px;
+  color: var(--texto-suave);
+  margin-top: 18px;
+}
